@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Game</title>
+  <style>
+    body { font-family: Arial; background: linear-gradient(to right, #6a11cb, #2575fc); color: #fff; display:flex; flex-direction:column; align-items:center; padding:20px; }
+    #landing-page { text-align:center; margin-top:50px; }
+    #game-container { display:none; text-align:center; }
+    #game-board { display:grid; gap:10px; justify-content:center; margin:20px 0; }
+    .card { width:100px; height:100px; perspective:1000px; cursor:pointer; }
+    .card-inner { position:relative; width:100%; height:100%; transition: transform 0.6s; transform-style:preserve-3d; }
+    .card.flipped .card-inner { transform:rotateY(180deg); }
+    .card-front, .card-back { position:absolute; width:100%; height:100%; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:2em; backface-visibility:hidden; }
+    .card-front { background:#fff; color:#333; transform:rotateY(180deg); }
+    .card-back { background:#ff6b6b; }
+    #moves { margin-bottom:20px; font-size:1.2em; }
+    button { padding:10px 20px; font-size:16px; margin:5px; border:none; border-radius:10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+  <div id="landing-page">
+    <h1> Memory Game </h1>
+    <p>Match all the cards to win!</p>
+    <label for="difficulty">Select Difficulty:</label>
+    <select id="difficulty" name="difficulty">
+      <option value="easy">Easy (8 pairs)</option>
+      <option value="medium">Medium (12 pairs)</option>
+      <option value="hard">Hard (16 pairs)</option>
+    </select>
+    <br>
+    <button id="start-game">Start Game</button>
+  </div>
+
+  <div id="game-container">
+    <div id="moves">Moves: 0</div>
+    <div id="game-board"></div>
+    <button id="restart">Restart Game</button>
+  </div>
+
+  <script>
+   document.addEventListener("DOMContentLoaded", () => {
+
+  // DOM elements
+  const landingPage = document.getElementById("landing-page");
+  const gameContainer = document.getElementById("game-container");
+  const startBtn = document.getElementById("start-game");
+  const difficultySelect = document.getElementById("difficulty");
+  const board = document.getElementById("game-board");
+  const movesCounter = document.getElementById("moves");
+  const restartBtn = document.getElementById("restart");
+
+  const allIcons = ["🍎","🍌","🍓","🍇","🥑","🍒","🍍","🥭","🥝","🥥","🍉","🍋","🍊","🍐","🍏","🍑"];
+  let selectedPairs = 8, cards = [], moves=0, flippedCard=null, lockBoard=false, matchedPairs=0;
+
+  // Audio setup
+  let audioCtx;
+  function initAudio(){ 
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  }
+
+  function playFlipSound(){
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  function playWinSound(){
+    initAudio();
+    const notes = [400,500,600,700];
+    let startTime = audioCtx.currentTime;
+    notes.forEach((freq,i)=>{
+      const osc = audioCtx.createOscillator();
+      osc.type="sine";
+      osc.frequency.setValueAtTime(freq,startTime+i*0.15);
+      osc.connect(audioCtx.destination);
+      osc.start(startTime+i*0.15);
+      osc.stop(startTime+(i+1)*0.15);
+    });
+  }
+
+  function shuffle(array){ return array.sort(()=>Math.random()-0.5); }
+
+  function startGame(){
+    moves=0; flippedCard=null; lockBoard=false; matchedPairs=0;
+    movesCounter.textContent="Moves: 0"; board.innerHTML="";
+    const selectedIcons = shuffle([...allIcons]).slice(0, selectedPairs);
+    cards=[...selectedIcons, ...selectedIcons]; cards=shuffle(cards);
+
+    cards.forEach(icon=>{
+      const card=document.createElement("div");
+      card.classList.add("card");
+      card.innerHTML=`<div class="card-inner"><div class="card-back">❓</div><div class="card-front">${icon}</div></div>`;
+      card.addEventListener("click", flipCard);
+      board.appendChild(card);
+    });
+
+    board.style.gridTemplateColumns=selectedPairs<=8?"repeat(4,100px)":selectedPairs<=12?"repeat(6,100px)":"repeat(8,100px)";
+  }
+
+  function flipCard(){
+    if(lockBoard || this.classList.contains("flipped")) return;
+    this.classList.add("flipped");
+    playFlipSound();
+    if(!flippedCard){ flippedCard=this; return; }
+    checkMatch(this);
+  }
+
+  function checkMatch(secondCard){
+    const firstIcon = flippedCard.querySelector(".card-front").textContent;
+    const secondIcon = secondCard.querySelector(".card-front").textContent;
+    if(firstIcon===secondCard.textContent){
+      matchedPairs++;
+      flippedCard=null;
+      checkWin();
+    } else {
+      lockBoard=true;
+      setTimeout(()=>{
+        flippedCard.classList.remove("flipped");
+        secondCard.classList.remove("flipped");
+        flippedCard=null;
+        lockBoard=false;
+      },1000);
+    }
+    moves++;
+    movesCounter.textContent=`Moves: ${moves}`;
+  }
+
+  function checkWin(){
+    if(matchedPairs===selectedPairs){
+      playWinSound();
+      setTimeout(()=>alert(`🎉 You won in ${moves} moves! 🎉`), 100);
+    }
+  }
+
+  startBtn.addEventListener("click", ()=>{
+    selectedPairs = difficultySelect.value==="easy"?8:difficultySelect.value==="medium"?12:16;
+    landingPage.style.display="none";
+    gameContainer.style.display="block";
+    startGame();
+  });
+
+  restartBtn.addEventListener("click", ()=>window.location.reload());
+});
+
+  </script>
+</body>
+</html>

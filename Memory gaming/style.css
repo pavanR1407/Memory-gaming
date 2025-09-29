@@ -1,0 +1,131 @@
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Landing Page */
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.landing-page h1 {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.landing-page p {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  max-width: 500px;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  transition: 0.2s;
+}
+
+/* Game Board */
+#game-board {
+  display: grid;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  width: 100px;
+  height: 100px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  backface-visibility: hidden;
+}
+
+.card-front {
+  background-color: #fff;
+  color: #333;
+  transform: rotateY(180deg);
+}
+
+.card-back {
+  background-color: #ff6b6b;
+}
+
+/* Moves counter */
+#moves {
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: #fff;
+  color: #333;
+  padding: 30px 50px;
+  border-radius: 20px;
+  text-align: center;
+  transform: scale(0);
+  animation: popIn 0.5s forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
